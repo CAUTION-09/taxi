@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="ky">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Попутка Такси — Шаарлар Аралык</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-slate-50 font-sans text-slate-800 antialiased">
+
+    <header class="bg-white shadow-sm sticky top-0 z-50">
+        <div class="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
+            <h1 class="text-2xl font-bold text-indigo-600 flex items-center gap-2">
+                <i class="fa-solid fa-car-side"></i> Сапарлаш
+            </h1>
+            <nav class="flex gap-2 bg-slate-100 p-1 rounded-xl">
+                <button id="tab-client" onclick="switchTab('client')" class="px-5 py-2 rounded-lg font-medium text-sm transition-all bg-white text-indigo-600 shadow-sm cursor-pointer">
+                    <i class="fa-solid fa-user mr-2"></i>Клиент
+                </button>
+                <button id="tab-driver" onclick="switchTab('driver')" class="px-5 py-2 rounded-lg font-medium text-sm transition-all text-slate-600 hover:text-slate-900 cursor-pointer">
+                    <i class="fa-solid fa-steering-wheel mr-2"></i>Айдоочу Жеке Бөлмө
+                </button>
+            </nav>
+        </div>
+    </header>
+
+    <main class="max-w-6xl mx-auto px-4 py-8">
+        
+        <section id="client-section" class="space-y-8">
+            <div class="bg-white p-6 rounded-2xl shadow-xl shadow-slate-100 border border-slate-100">
+                <h3 class="text-xl font-bold mb-4 text-slate-900 flex items-center gap-2">
+                    <i class="fa-solid fa-magnifying-glass text-indigo-500"></i> Багыт боюнча унаа издөө
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Кайсы жерден</label>
+                        <div class="flex items-center bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 focus-within:border-indigo-500 transition">
+                            <i class="fa-solid fa-location-dot text-slate-400 mr-2"></i>
+                            <input type="text" id="search-from" oninput="filterTaxis()" placeholder="Мисалы: Бишкек" class="w-full bg-transparent outline-none text-sm">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Кайсы жакка</label>
+                        <div class="flex items-center bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 focus-within:border-indigo-500 transition">
+                            <i class="fa-solid fa-location-arrow text-slate-400 mr-2"></i>
+                            <input type="text" id="search-to" oninput="filterTaxis()" placeholder="Мисалы: Ош" class="w-full bg-transparent outline-none text-sm">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Күнү</label>
+                        <div class="flex items-center bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 focus-within:border-indigo-500 transition">
+                            <i class="fa-solid fa-calendar text-slate-400 mr-2"></i>
+                            <input type="date" id="search-date" onchange="filterTaxis()" class="w-full bg-transparent outline-none text-sm text-slate-600">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Убактысы</label>
+                        <div class="flex items-center bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 focus-within:border-indigo-500 transition">
+                            <i class="fa-solid fa-clock text-slate-400 mr-2"></i>
+                            <input type="time" id="search-time" onchange="filterTaxis()" class="w-full bg-transparent outline-none text-sm text-slate-600">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-bold text-slate-900">Айдоочулардын билдирүүлөрү</h2>
+                    <span class="text-xs bg-emerald-100 text-emerald-800 font-semibold px-2.5 py-1 rounded-full flex items-center gap-1">
+                        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Арзандары биринчи
+                    </span>
+                </div>
+                
+                <div id="taxi-listings" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    </div>
+            </div>
+        </section>
+
+        <section id="driver-section" class="hidden max-w-2xl mx-auto space-y-6">
+            
+            <div id="active-order-panel" class="hidden bg-gradient-to-r from-indigo-900 to-slate-900 text-white p-6 rounded-2xl shadow-xl">
+                <div class="flex justify-between items-start mb-4">
+                    <div>
+                        <span class="bg-amber-500 text-slate-950 text-xs font-bold px-2.5 py-1 rounded-full uppercase tracking-wider">Активдүү сапар</span>
+                        <h3 id="active-route" class="text-xl font-bold mt-2">Бишкек ➔ Ош</h3>
+                        <p id="active-details" class="text-xs text-slate-300 mt-1">Toyota Camry | 0700112233</p>
+                    </div>
+                    <div class="text-right">
+                        <span class="text-xs text-slate-300 block">Баасы</span>
+                        <span id="active-price" class="text-2xl font-extrabold text-amber-400">1200 сом</span>
+                    </div>
+                </div>
+
+                <div class="bg-white/10 p-4 rounded-xl flex flex-col sm:flex-row items-center justify-between gap-4 my-4 backdrop-blur-sm">
+                    <div>
+                        <div class="text-sm font-semibold text-slate-200">Кардарларды башкаруу:</div>
+                        <div id="active-seats-info" class="text-lg font-bold text-white mt-0.5">3 орун бош / 1 киси кошулду</div>
+                    </div>
+                    <div class="flex items-center bg-white rounded-lg overflow-hidden shadow-md">
+                        <button onclick="updateActiveSeats('minus')" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold transition">
+                            <i class="fa-solid fa-minus"></i> Кетпей калды
+                        </button>
+                        <span id="active-count-label" class="px-4 font-bold text-slate-900 text-sm bg-white">1 киши</span>
+                        <button onclick="updateActiveSeats('plus')" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold transition">
+                            <i class="fa-solid fa-plus"></i> Адам кошуу
+                        </button>
+                    </div>
+                </div>
+
+                <button onclick="finishTrip()" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 rounded-xl transition shadow-lg shadow-red-900/30 flex items-center justify-center gap-2 cursor-pointer">
+                    <i class="fa-solid fa-circle-check"></i> Сапарды бүтүрүү (Завершить)
+                </button>
+            </div>
+
+            <div id="driver-form-panel" class="bg-white p-6 rounded-2xl shadow-xl border border-slate-100">
+                <h2 class="text-2xl font-bold text-slate-900 mb-6 flex items-center gap-2">
+                    <i class="fa-solid fa-bullhorn text-indigo-500"></i> Жаңы жарнама чыгаруу
+                </h2>
+                
+                <form id="driver-form" onsubmit="createAd(event)" class="space-y-4">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Кайсы жерден</label>
+                            <input type="text" id="route-from" required placeholder="Мисалы: Бишкек" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 outline-none focus:border-indigo-500 transition text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Кайсы жакка</label>
+                            <input type="text" id="route-to" required placeholder="Мисалы: Жалал-Абад" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 outline-none focus:border-indigo-500 transition text-sm">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-3 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Күнү</label>
+                            <input type="date" id="ride-date" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 outline-none focus:border-indigo-500 transition text-sm text-slate-600">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Убактысы</label>
+                            <input type="time" id="ride-time" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 outline-none focus:border-indigo-500 transition text-sm text-slate-600">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Баасы (сом)</label>
+                            <input type="number" id="ride-price" required placeholder="Баасы" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 outline-none focus:border-indigo-500 transition text-sm">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Телефон номери</label>
+                            <input type="tel" id="driver-phone" required placeholder="0770XXXXXX" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 outline-none focus:border-indigo-500 transition text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Машинанын маркасы</label>
+                            <input type="text" id="car-model" required placeholder="Toyota Camry" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 outline-none focus:border-indigo-500 transition text-sm">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Машинанын сүрөтү (URL шилтемеси)</label>
+                            <input type="url" id="car-image" placeholder="https://..." class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 outline-none focus:border-indigo-500 transition text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Жалпы орундар саны</label>
+                            <input type="number" id="car-seats" required min="1" max="8" value="4" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 outline-none focus:border-indigo-500 transition text-sm">
+                        </div>
+                    </div>
+
+                    <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-3 rounded-xl transition shadow-lg shadow-emerald-100 mt-2 cursor-pointer">
+                        <i class="fa-solid fa-paper-plane mr-2"></i> Жарнаманы жайгаштыруу
+                    </button>
+                </form>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        // Баштапкы маалыматтар (Тест үчүн жасалма база)
+        let taxiData = [
+            { id: 1, from: "Бишкек", to: "Ош", date: "2026-06-10", time: "08:00", price: 1200, phone: "0700112233", car: "Toyota Camry", image: "https://images.unsplash.com/photo-1621007947382-bb3c3994e3fb?w=500", totalSeats: 4, bookedSeats: 1 },
+            { id: 2, from: "Бишкек", to: "Ош", date: "2026-06-10", time: "10:30", price: 1000, phone: "0555998877", car: "Honda Stepwgn", image: "https://images.unsplash.com/photo-1568605117036-5fe5e7bab0b7?w=500", totalSeats: 7, bookedSeats: 4 },
+            { id: 3, from: "Жалал-Абад", to: "Бишкек", date: "2026-06-12", time: "17:00", price: 1500, phone: "0777554433", car: "Mercedes E-Class", image: "https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?w=500", totalSeats: 4, bookedSeats: 0 }
+        ];
+
+        // Айдоочунун өзүнүн учурдагы активдүү заказы (Башында жок)
+        let currentDriverTrip = null;
+
+        // Бөлүмдөрдү алмаштыруу (Клиент / Айдоочу)
+        function switchTab(tab) {
+            const clientTab = document.getElementById('tab-client');
+            const driverTab = document.getElementById('tab-driver');
+            const clientSec = document.getElementById('client-section');
+            const driverSec = document.getElementById('driver-section');
+
+            if (tab === 'client') {
+                clientTab.className = "px-5 py-2 rounded-lg font-medium text-sm transition-all bg-white text-indigo-600 shadow-sm cursor-pointer";
+                driverTab.className = "px-5 py-2 rounded-lg font-medium text-sm transition-all text-slate-600 hover:text-slate-900 cursor-pointer";
+                clientSec.classList.remove('hidden');
+                driverSec.classList.add('hidden');
+                renderTaxis(taxiData); 
+            } else {
+                driverTab.className = "px-5 py-2 rounded-lg font-medium text-sm transition-all bg-white text-indigo-600 shadow-sm cursor-pointer";
+                clientTab.className = "px-5 py-2 rounded-lg font-medium text-sm transition-all text-slate-600 hover:text-slate-900 cursor-pointer";
+                driverSec.classList.remove('hidden');
+                clientSec.classList.add('hidden');
+                updateDriverPanel(); // Айдоочунун панелин жаңылоо
+            }
+        }
+
+        // КЛИЕНТ ТАРАПКА КАРТОЧКАЛАРДЫ ЧЫГАРУУ (Арзаны биринчи орунда)
+        function renderTaxis(data) {
+            const container = document.getElementById('taxi-listings');
+            container.innerHTML = '';
+
+            // Баасы боюнча сорттоо (Эң арзан баа биринчи чыгат)
+            const sortedData = [...data].sort((a, b) => a.price - b.price);
+
+            if(sortedData.length === 0) {
+                container.innerHTML = `<div class="col-span-full text-center py-12 text-slate-400 bg-white rounded-2xl border border-dashed border-slate-200">Маалымат табылган жок</div>`;
+                return;
+            }
+
+            sortedData.forEach(taxi => {
+                const availableSeats = taxi.totalSeats - taxi.bookedSeats;
+                const carImg = taxi.image || "https://images.unsplash.com/photo-1549399542-7e3f8b79c341?w=500";
+
+                // Клиентке +/- баскычтары көрүнбөйт, болгону канча бош орун бар экени гана көрүнөт
+                const card = `
+                    <div class="bg-white rounded-2xl overflow-hidden shadow-md border border-slate-100 flex flex-col sm:flex-row">
+                        <div class="sm:w-1/3 h-44 sm:h-auto relative bg-slate-100">
+                            <img src="${carImg}" class="w-full h-full object-cover">
+                            <div class="absolute top-3 left-3 bg-indigo-600 text-white font-bold px-3 py-1 rounded-lg text-sm">
+                                ${taxi.price} сом
+                            </div>
+                        </div>
+                        <div class="p-5 flex-1 flex flex-col justify-between space-y-3">
+                            <div>
+                                <div class="flex items-center justify-between mb-1">
+                                    <span class="text-xs font-bold text-indigo-600 bg-indigo-50 px-2 py-1 rounded">${taxi.car}</span>
+                                    <a href="tel:${taxi.phone}" class="text-slate-700 hover:text-indigo-600 text-sm font-semibold flex items-center gap-1">
+                                        <i class="fa-solid fa-phone text-emerald-500"></i> ${taxi.phone}
+                                    </a>
+                                </div>
+                                <div class="text-lg font-bold text-slate-900 flex items-center gap-2">
+                                    <span>${taxi.from}</span> 
+                                    <i class="fa-solid fa-arrow-right text-xs text-slate-400"></i> 
+                                    <span>${taxi.to}</span>
+                                </div>
+                                <div class="text-xs text-slate-500 flex gap-3 mt-1">
+                                    <span><i class="fa-solid fa-calendar mr-1"></i> ${taxi.date}</span>
+                                    <span><i class="fa-solid fa-clock mr-1"></i> ${taxi.time}</span>
+                                </div>
+                            </div>
+                            <div class="bg-slate-50 p-3 rounded-xl flex justify-between items-center border border-slate-100">
+                                <span class="text-xs font-semibold text-slate-500 uppercase">Бош орундар:</span>
+                                <span class="text-sm font-extrabold ${availableSeats > 0 ? 'text-emerald-600' : 'text-red-500'}">
+                                    ${availableSeats > 0 ? `${availableSeats} орун бар` : 'Орун калган жок'}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                container.innerHTML += card;
+            });
+        }
+
+        // АВТОМАТТЫК ИЗДӨӨ ЛОГИКАСЫ (Кнопкасыз иштейт)
+        function filterTaxis() {
+            const fromVal = document.getElementById('search-from').value.toLowerCase().trim();
+            const toVal = document.getElementById('search-to').value.toLowerCase().trim();
+            const dateVal = document.getElementById('search-date').value;
+            const timeVal = document.getElementById('search-time').value;
+
+            const filtered = taxiData.filter(taxi => {
+                const matchFrom = !fromVal || taxi.from.toLowerCase().includes(fromVal);
+                const matchTo = !toVal || taxi.to.toLowerCase().includes(toVal);
+                const matchDate = !dateVal || taxi.date === dateVal;
+                const matchTime = !timeVal || taxi.time >= timeVal;
+                return matchFrom && matchTo && matchDate && matchTime;
+            });
+
+            renderTaxis(filtered);
+        }
+
+        // АЙДООЧУ ЖАНЫ ЗАКАЗ КОШКОНДО
+        function createAd(event) {
+            event.preventDefault();
+
+            // Эгер айдоочунун активдүү заказы бүтө элек болсо, жаңы коштурбайт!
+            if (currentDriverTrip !== null) {
+                alert("Сизде учурда активдүү сапар бар! Аны кошордон мурун 'Завершить' кылыңыз.");
+                return;
+            }
+
+            const totalSeatsInput = parseInt(document.getElementById('car-seats').value);
+
+            currentDriverTrip = {
+                id: Date.now(),
+                from: document.getElementById('route-from').value.trim(),
+                to: document.getElementById('route-to').value.trim(),
+                date: document.getElementById('ride-date').value,
+                time: document.getElementById('ride-time').value,
+                price: parseFloat(document.getElementById('ride-price').value),
+                phone: document.getElementById('driver-phone').value.trim(),
+                car: document.getElementById('car-model').value.trim(),
+                image: document.getElementById('car-image').value.trim(),
+                totalSeats: totalSeatsInput,
+                bookedSeats: 0 // Башында 0 киши
+            };
+
+            // Жалпы базага кошуу
+            taxiData.unshift(currentDriverTrip);
+            
+            document.getElementById('driver-form').reset();
+            alert("Жарнамаңыз ийгиликтүү жайгаштырылды!");
+            
+            // Панелди жана башкы бетти жаңылоо
+            updateDriverPanel();
+            switchTab('client');
+        }
+
+        // АЙДООЧУНУН ЖЕКЕ ПАНЕЛИН БАШКАРУУ (Форманы бекитүү же көрсөтүү)
+        function updateDriverPanel() {
+            const formPanel = document.getElementById('driver-form-panel');
+            const activePanel = document.getElementById('active-order-panel');
+
+            if (currentDriverTrip === null) {
+                // Активдүү заказ жок болсо - форманы көрсөтүү
+                formPanel.classList.remove('hidden');
+                activePanel.classList.add('hidden');
+            } else {
+                // Активдүү заказ бар болсо - башкаруу панелин көрсөтүү, форманы жабуу
+                formPanel.classList.add('hidden');
+                activePanel.classList.remove('hidden');
+
+                // Тексттерди жаңыртуу
+                document.getElementById('active-route').innerText = `${currentDriverTrip.from} ➔ ${currentDriverTrip.to}`;
+                document.getElementById('active-details').innerText = `${currentDriverTrip.car} | ${currentDriverTrip.phone} | Күнү: ${currentDriverTrip.date} - ${currentDriverTrip.time}`;
+                document.getElementById('active-price').innerText = `${currentDriverTrip.price} сом`;
+                
+                const leftSeats = currentDriverTrip.totalSeats - currentDriverTrip.bookedSeats;
+                document.getElementById('active-seats-info').innerText = `${leftSeats} орун бош / ${currentDriverTrip.bookedSeats} киши кошулду`;
+                document.getElementById('active-count-label').innerText = `${currentDriverTrip.bookedSeats} киши`;
+            }
+        }
+
+        // АЙДООЧУ ҮЧҮН: ПЛЮС / МИНУС КНОПКАЛАРЫ
+        function updateActiveSeats(action) {
+            if (!currentDriverTrip) return;
+
+            // Негизги базадагы объектти шилтеме аркылуу табуу
+            const taxiInBase = taxiData.find(item => item.id === currentDriverTrip.id);
+
+            if (action === 'plus') {
+                if (currentDriverTrip.bookedSeats < currentDriverTrip.totalSeats) {
+                    currentDriverTrip.bookedSeats++;
+                    if(taxiInBase) taxiInBase.bookedSeats = currentDriverTrip.bookedSeats;
+                } else {
+                    alert("Сиз көрсөткөн унаадагы орундуктардын чеги толду!");
+                }
+            } else if (action === 'minus') {
+                if (currentDriverTrip.bookedSeats > 0) {
+                    currentDriverTrip.bookedSeats--;
+                    if(taxiInBase) taxiInBase.bookedSeats = currentDriverTrip.bookedSeats;
+                }
+            }
+
+            updateDriverPanel();
+        }
+
+        // АЙДООЧУ ҮЧҮН: САПАРДЫ АЯКТОО (ЗАВЕРШИТЬ)
+        function finishTrip() {
+            if (!currentDriverTrip) return;
+
+            if (confirm("Бул сапарды чындап эле аяктагыңыз келеби? (Бул жарнама клиенттерге көрүнбөй калат)")) {
+                // Базадан алып салуу
+                taxiData = taxiData.filter(item => item.id !== currentDriverTrip.id);
+                
+                // Активдүү заказды тазалоо (Жаңы заказ кошууга жол ачылат)
+                currentDriverTrip = null;
+                
+                updateDriverPanel();
+                alert("Сапар ийгиликтүү аяктады. Эми жаңы жарнама түзө аласыз!");
+            }
+        }
+
+        // Баштапкы жүктөөдө тизмени көрсөтүү
+        document.addEventListener("DOMContentLoaded", () => {
+            renderTaxis(taxiData);
+        });
+    </script>
+</body>
+</html>
